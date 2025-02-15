@@ -110,11 +110,6 @@ open class ExplodedBlock(protected var explosion: Explosion, val state: BlockSta
     fun placeBlock() {
         val currentBlock = this.state.location.block
 
-        // If block isn't air, it's likely a player put it there. Just break it off normally to give it back to them
-        if (currentBlock.blockData.material != Material.AIR) {
-            plugin.debugLogger("Breaking ${currentBlock.blockData.material} to place a block")
-            currentBlock.breakNaturally()
-        }
         this.state.update(true)
 
         // Get any entities inside t
