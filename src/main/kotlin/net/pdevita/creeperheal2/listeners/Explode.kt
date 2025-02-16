@@ -1,6 +1,7 @@
 package net.pdevita.creeperheal2.listeners
 
 import net.pdevita.creeperheal2.CreeperHeal2
+import org.bukkit.Material
 import org.bukkit.entity.ArmorStand
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Wither
@@ -14,28 +15,47 @@ import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.hanging.HangingBreakByEntityEvent
 import org.bukkit.event.hanging.HangingBreakEvent
 
-class Explode(var plugin: CreeperHeal2): Listener {
-    @EventHandler(priority = EventPriority.HIGH)
+class Explode(var plugin: CreeperHeal2) : Listener {
+
+    @EventHandler(priority = EventPriority.LOWEST)
     fun onEntityExplodeEvent(event: EntityExplodeEvent) {
-//        plugin.debugLogger("An entity explosion has happened! ${event.entityType.toString()}")
         if (plugin.settings.types.allowExplosionEntity(event.entityType)) {
-            if (event.location.world?.let { plugin.settings.worldList.allowWorld(it.name) } == true) {
-                this.plugin.createNewExplosion(event.blockList())
+            event.location.world?.name?.let { worldName ->
+                if (plugin.settings.worldList.allowWorld(worldName)) {
+                    plugin.createNewExplosion(event.blockList())
+
+                    // Remove container blocks from the event's list to avoid duplicate drops.
+                    event.blockList().removeIf { block ->
+                        block.type == Material.CHEST ||
+                                block.type == Material.TRAPPED_CHEST ||
+                                block.type == Material.FURNACE ||
+                                block.type == Material.BARREL
+                    }
+                }
             }
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOWEST)
     fun onBlockExplodeEvent(event: BlockExplodeEvent) {
-//        plugin.debugLogger("A block explosion has happened! ${event.block.toString()}")
-        if (plugin.settings.types.allowExplosionBlock(/*event.block.blockData.material*/)) {
-            if (event.block.location.world?.let { plugin.settings.worldList.allowWorld(it.name) } == true) {
-                this.plugin.createNewExplosion(event.blockList())
+        event.block.location.world?.name?.let { worldName ->
+            if (plugin.settings.worldList.allowWorld(worldName) &&
+                plugin.settings.types.allowExplosionBlock(/*event.block.blockData.material*/)
+            ) {
+                plugin.createNewExplosion(event.blockList())
+
+                // Remove container blocks from the event's list to avoid duplicate drops.
+                event.blockList().removeIf { block ->
+                    block.type == Material.CHEST ||
+                            block.type == Material.TRAPPED_CHEST ||
+                            block.type == Material.FURNACE ||
+                            block.type == Material.BARREL
+                }
             }
         }
     }
 
-    @EventHandler()
+    @EventHandler
     fun onHangingBreakEvent(event: HangingBreakEvent) {
         if (plugin.settings.general.entityType && event.entity.location.world?.let { plugin.settings.worldList.allowWorld(it.name) } == true) {
             if (event.cause == HangingBreakEvent.RemoveCause.EXPLOSION) {
@@ -52,7 +72,7 @@ class Explode(var plugin: CreeperHeal2): Listener {
         }
     }
 
-    @EventHandler()
+    @EventHandler
     fun onEntityDamageEvent(event: EntityDamageEvent) {
         if (plugin.settings.general.entityType && event.entity.location.world?.let { plugin.settings.worldList.allowWorld(it.name) } == true) {
             if (event.entityType == EntityType.ARMOR_STAND) {
@@ -65,18 +85,18 @@ class Explode(var plugin: CreeperHeal2): Listener {
                     // if ((armorStand.health - event.finalDamage).roundToInt() < 0) {
                     plugin.createNewExplosion(armorStand)
                     event.isCancelled = true
-                    // }
                 }
             }
         }
     }
 
-    @EventHandler()
+    @EventHandler
     fun witherBreak(event: EntityChangeBlockEvent) {
         if (event.entity is Wither) {
-            event.block.drops.clear()
-            if (event.block.location.world?.let { plugin.settings.worldList.allowWorld(it.name) } == true) {
-                this.plugin.createNewExplosion(listOf(event.block))
+            event.block.location.world?.name?.let { worldName ->
+                if (plugin.settings.worldList.allowWorld(worldName)) {
+                    plugin.createNewExplosion(listOf(event.block))
+                }
             }
         }
     }
