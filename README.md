@@ -1,4 +1,6 @@
-# CreeperHeal2 (v2.1.1) (1.13-1.20+)
+# CreeperHeal2-Wyzebb (v2.2.0) (1.13-1.21.x)
+
+The Wyzebb feature and fix port of the plugin by pmdevita. All credit goes to them, this fork simply aims to add and alter some functionality.
 
 [Spigot Plugin Page](https://www.spigotmc.org/resources/creeperheal2.80585/) | [Dokka](https://pmdevita.github.io/CreeperHeal2/dokka) | [Javadocs](https://pmdevita.github.io/CreeperHeal2/javadoc)
 
