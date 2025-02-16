@@ -1,4 +1,4 @@
-# CreeperHeal2 Block List
+# CreeperHeal2-Wyzebb Block List
 
 # Either blacklist or whitelist
 blocklist-type: blacklist
@@ -7,7 +7,8 @@ blocklist-type: blacklist
 # You can find a list of proper spellings for block names here
 # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
 
-# blocks:
+blocks:
+  - AIR # Tylor, you need to keep the AIR entry or the plugin won't work how you want it to
 # - GRASS_BLOCK
 # - PINK_WOOL
 # - POPPY
