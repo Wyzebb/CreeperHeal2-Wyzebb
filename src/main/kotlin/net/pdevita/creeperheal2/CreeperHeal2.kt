@@ -9,7 +9,9 @@ import net.pdevita.creeperheal2.core.ExplosionManager
 import net.pdevita.creeperheal2.core.Gravity
 import net.pdevita.creeperheal2.listeners.Explode
 import net.pdevita.creeperheal2.utils.Stats
+import org.bukkit.Material
 import org.bukkit.block.Block
+import org.bukkit.block.Container
 import org.bukkit.entity.Entity
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
@@ -68,6 +70,28 @@ class CreeperHeal2 : JavaPlugin() {
             return null
         }
 
+        blockList.forEach { block ->
+            if (block.type == Material.CHEST ||
+                block.type == Material.TRAPPED_CHEST ||
+                block.type == Material.FURNACE ||
+                block.type == Material.BARREL
+            ) {
+                debugLogger("Found container: $block")
+                // Using block.state captures the snapshot at this moment.
+                val containerState = block.state
+                if (containerState is Container) {
+                    containerState.inventory.contents.forEach { item ->
+                        if (item != null) { // Ensure item is not null
+                            debugLogger("Dropping item: ${item.itemMeta?.displayName ?: item.type}")
+                            containerState.world.dropItemNaturally(block.location, item)
+                        }
+                    }
+                    containerState.inventory.clear()
+                }
+            }
+        }
+
+        // Now filter the list for blocks allowed for restoration.
         val newBlockList = LinkedList(blockList.filter { settings.blockList.allowMaterial(it.type) })
 
         if (newBlockList.isEmpty()) {
@@ -97,7 +121,6 @@ class CreeperHeal2 : JavaPlugin() {
     }
 
     fun removeExplosion(explosion: Explosion) {
-//        explosions.remove(explosion)
         manager.remove(explosion)
     }
 
@@ -122,13 +145,7 @@ class CreeperHeal2 : JavaPlugin() {
 
     override fun onDisable() {
         super.onDisable()
-        // Quickly replace all blocks before shutdown
-//        val itr = explosions.iterator()
-//        while (itr.hasNext()) {
-//            itr.next().warpReplaceBlocks()
-//            itr.remove()
-//        }
+        // Quickly replace all blocks before shutdown.
         manager.warpAll()
     }
 }
-
