@@ -11,7 +11,7 @@ import kotlin.math.ceil
 import kotlin.random.Random
 
 private object SideFaces {
-    val faces = java.util.ArrayList<BlockFace>(
+    val faces = ArrayList(
         listOf(
             BlockFace.UP,
             BlockFace.DOWN,
@@ -45,7 +45,7 @@ open class ExplodedBlock(protected var explosion: Explosion, val state: BlockSta
     }
 
     fun relinkExplosion(newExplosion: Explosion) {
-        this.explosion = newExplosion;
+        this.explosion = newExplosion
     }
 
     // Normal blocks don't have any parent blocks they rely on
@@ -83,7 +83,7 @@ open class ExplodedBlock(protected var explosion: Explosion, val state: BlockSta
 
             // Check if that block isn't already a part of the explosion
             if (!this.explosion.locations.containsKey(checkingBlock.location) && !this.explosion.gravityBlocks.contains(checkingBlock.location)) {
-                val explodedBlock = ExplodedBlock.from(this.explosion, checkingBlock.state)
+                val explodedBlock = from(this.explosion, checkingBlock.state)
                 // Check the block is side dependent on this block
                 if (explodedBlock.dependsOn(this.state.location)) {
                     foundBlocks.add(explodedBlock)
