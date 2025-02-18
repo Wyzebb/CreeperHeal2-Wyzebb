@@ -1,4 +1,4 @@
-# CreeperHeal2-Wyzebb (v2.2.0) (1.13-1.21.x)
+# CreeperHeal2-Wyzebb Fork (v2.2.0) (1.13-1.21.x)
 
 The Wyzebb feature and fix port of the plugin by pmdevita. All credit goes to them, this fork simply aims to add and alter some functionality.
 
