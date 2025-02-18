@@ -1,0 +1,71 @@
+name: Release
+
+on: push: branches: [ master ] workflow_dispatch:
+
+jobs: release: name: Publish a release runs-on: ubuntu-latest steps: - uses: actions/checkout@v2 with: fetch-depth: 0  # Fetch full history to compare commits and tags
+
+- name: Set up JDK 17
+    uses: actions/setup-java@v2
+    with:
+      java-version: 17
+      distribution: 'adopt'
+
+  - name: Build with Maven
+    run: mvn --batch-mode --update-snapshots clean package
+
+  - name: Get Version from POM
+    id: version
+    run: |
+      VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+      echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+  - name: Fetch latest DEV release number
+    id: dev_version
+    run: |
+      LATEST_DEV=$(git tag --list "v${VERSION}-DEV*" | sed 's/.*DEV//' | sort -n | tail -n1)
+      if [[ -z "$LATEST_DEV" ]]; then LATEST_DEV=0; fi
+      NEW_DEV=$((LATEST_DEV + 1))
+      echo "NEW_VERSION=${VERSION}+DEV${NEW_DEV}" >> $GITHUB_ENV
+      echo "TAG_VERSION=${VERSION}-DEV${NEW_DEV}" >> $GITHUB_ENV
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Generate Changelog
+    id: changelog
+    run: |
+      LAST_TAG=$(git tag --sort=-creatordate | head -n 1)
+      if [ -z "$LAST_TAG" ]; then LAST_TAG=$(git rev-list --max-parents=0 HEAD); fi
+      echo "Generating changelog from commits since $LAST_TAG"
+      git log --pretty=format:"- %s (%an)" "$LAST_TAG"..HEAD > CHANGELOG.md
+
+  - name: Create and Push Tag
+    run: |
+      git config user.name "github-actions"
+      git config user.email "github-actions@github.com"
+      git tag "v${TAG_VERSION}"
+      git push origin "v${TAG_VERSION}"
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Create Release
+    uses: actions/create-release@v1
+    id: create_release
+    with:
+      draft: false
+      prerelease: true
+      release_name: "CreeperHeal2-${{ env.NEW_VERSION }}"
+      tag_name: "v${{ env.TAG_VERSION }}"
+      body_path: CHANGELOG.md
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Upload Java File
+    uses: actions/upload-release-asset@v1
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      asset_path: "target/CreeperHeal2-${{ env.VERSION }}.jar"
+      asset_name: "CreeperHeal2-${{ env.NEW_VERSION }}.jar"
+      asset_content_type: application/java-archive
+
