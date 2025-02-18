@@ -12,4 +12,4 @@ commands:
   creeperheal:
     description: CreeperHeal2 commands
     usage: /creeperheal <command>
-    alias: ch
+    aliases: ch
